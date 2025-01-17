@@ -91,10 +91,12 @@ class SQLiteLogRepository(LogRepository):
                 """).fetchall()]
     
     def get_logs_by_member(self, member_id: int) -> List[Dict]:
-        return [{"timestamp": row[0]}
+        return [{"Member": row[0], "Exercise": row[1], "Reps": row[2], "Date": row[3]}
                 for row in self.conn.execute("""
-                    SELECT timestamp
-                    FROM logs
+                    SELECT m.name, e.name, l.reps, date(l.timestamp)
+                    FROM logs l
+                    JOIN members m ON l.member_id = m.id
+                    JOIN exercises e ON l.exercise_id = e.id
                     WHERE member_id = ?
                 """, (member_id,)).fetchall()]
     

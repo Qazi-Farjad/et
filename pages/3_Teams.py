@@ -17,6 +17,7 @@ tab1, tab2, tab3 = st.tabs(["👥 Teams", "⚙️ Manage Teams", "Edit Exercises
 with tab1:
     # Fetch all teams and members
     teams = team_repo.get_teams()
+    exercises = exercise_repo.get_exercises()
     if teams:
         # Use expanders to organize teams
         for team in teams:
@@ -29,15 +30,19 @@ with tab1:
                     for member in members:
                         # Fetch logs for the member
                         logs = log_repo.get_logs_by_member(member["id"])
-                        total_logs = len(logs)
-                        last_log_date = max(log["timestamp"] for log in logs) if logs else "No logs"
-
+                        logs_df = pd.DataFrame(logs)
+                        # logs_df
+                        last_log_date = max(log["Date"] for log in logs) if logs else "No logs"
+                        # logs_df.columns
+                        tmp = {"Member": member["name"]}
+                        for ex in exercises:
+                            if len(logs_df) == 0:
+                                tmp[ex['name']] = 0
+                            else:
+                                tmp[ex['name']] = logs_df[logs_df['Exercise'] == ex['name']]['Reps'].sum()
+                        tmp["Last Log"] = last_log_date
                         # Add data to the list
-                        member_data.append({
-                            "Member": member["name"],
-                            "Total Logs": total_logs,
-                            "Last Log Date": last_log_date,
-                        })
+                        member_data.append(tmp)
 
                     # Display the data in a table
                     st.table(pd.DataFrame(member_data))
