@@ -81,9 +81,13 @@ class SQLiteLogRepository(LogRepository):
         self.conn.commit()
 
     def get_logs(self) -> List[Dict]:
-        return [{"team": row[0], "member": row[1], "exercise": row[2], "reps": row[3], "points": row[4], "timestamp": row[5]}
+        return [{            "id": row[6],
+            "team": row[0], "member": row[1], "exercise": row[2],
+            "reps": row[3], "points": row[4], "timestamp": row[5]
+
+                 }
                 for row in self.conn.execute("""
-                    SELECT t.name, m.name, e.name, l.reps, l.points, l.timestamp
+                    SELECT t.name, m.name, e.name, l.reps, l.points, l.timestamp, l.id
                     FROM logs l
                     JOIN teams t ON l.team_id = t.id
                     JOIN members m ON l.member_id = m.id
@@ -110,3 +114,26 @@ class SQLiteLogRepository(LogRepository):
                     JOIN exercises e ON l.exercise_id = e.id
                     WHERE t.id = ?
                 """, (team_id,)).fetchall()]
+    
+    def update_log(self, log_id: int, exercise: str, reps: int) -> None:
+        points_per_rep = self.conn.execute(
+            "SELECT points_per_rep FROM exercises WHERE name = ?", (exercise,)
+        ).fetchone()[0]
+
+        # Calculate points
+        points = reps * points_per_rep
+        # Update the log in the database
+        self.conn.execute("""
+            UPDATE logs
+            SET reps = ?, points = ?
+            WHERE id = ?
+        """, (reps, points, log_id))
+        self.conn.commit()
+
+    def delete_log(self, log_id: int) -> None:
+        # Delete the log from the database
+        self.conn.execute("""
+            DELETE FROM logs
+            WHERE id = ?
+        """, (log_id,))
+        self.conn.commit()

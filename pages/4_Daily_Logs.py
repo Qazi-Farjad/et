@@ -66,7 +66,7 @@ if teams:
                         pivot_table = pivot_table[["date"] + member_names]
 
                         # Rename columns for better readability
-                        pivot_table = pivot_table.rename(columns={"date": "Day"}).set_index("Day")
+                        pivot_table = pivot_table.rename(columns={"date": "Day"}).set_index("Day").astype(str)
 
                         # Display the table
                         st.table(pivot_table)

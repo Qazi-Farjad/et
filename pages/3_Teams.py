@@ -45,7 +45,7 @@ with tab1:
                         member_data.append(tmp)
 
                     # Display the data in a table
-                    st.table(pd.DataFrame(member_data))
+                    st.table(pd.DataFrame(member_data).astype(str))
                 else:
                     st.warning("No members found for this team.")
     else:
